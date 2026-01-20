@@ -1,0 +1,171 @@
+import React, { useState } from "react";
+
+const Customers = () => {
+  const [customers, setCustomers] = useState([]);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+  });
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newCustomer = {
+      id: Date.now(),
+      ...formData,
+    };
+    setCustomers((prev) => [...prev, newCustomer]);
+    setFormData({ name: "", email: "", phone: "", address: "" });
+    setIsFormOpen(false);
+  };
+
+  const handleDelete = (id) => {
+    setCustomers((prev) => prev.filter((customer) => customer.id !== id));
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-slate-800">Customers</h1>
+        <button
+          className="bg-gradient-to-r from-cyan-400 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/40 transition-all duration-200"
+          onClick={() => setIsFormOpen(true)}
+        >
+          + Add Customer
+        </button>
+      </div>
+
+      {isFormOpen && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-slate-800">Add New Customer</h2>
+              <button
+                className="text-3xl text-gray-500 hover:text-gray-700 transition-colors"
+                onClick={() => setIsFormOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-5">
+                <label className="block mb-2 text-gray-700 font-medium">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter customer name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors"
+                />
+              </div>
+              <div className="mb-5">
+                <label className="block mb-2 text-gray-700 font-medium">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter email address"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors"
+                />
+              </div>
+              <div className="mb-5">
+                <label className="block mb-2 text-gray-700 font-medium">Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter phone number"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors"
+                />
+              </div>
+              <div className="mb-5">
+                <label className="block mb-2 text-gray-700 font-medium">Address</label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  placeholder="Enter address"
+                  rows="3"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors resize-none"
+                />
+              </div>
+              <div className="flex gap-4 justify-end mt-6">
+                <button
+                  type="button"
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  onClick={() => setIsFormOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-gradient-to-r from-cyan-400 to-blue-600 text-white rounded-lg font-medium hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                >
+                  Save Customer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Name</th>
+              <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Email</th>
+              <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Phone</th>
+              <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Address</th>
+              <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {customers.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="text-center text-gray-400 italic py-10">
+                  No customers found. Add your first customer!
+                </td>
+              </tr>
+            ) : (
+              customers.map((customer) => (
+                <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.name}</td>
+                  <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.email}</td>
+                  <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.phone}</td>
+                  <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.address}</td>
+                  <td className="px-5 py-4 border-b border-gray-100">
+                    <button
+                      className="px-4 py-2 bg-red-500 text-white rounded-md text-sm hover:bg-red-600 transition-colors"
+                      onClick={() => handleDelete(customer.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default Customers;
