@@ -97,10 +97,10 @@ const Customers = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8 animate-slide-down">
-        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Customers</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 animate-slide-down">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">Customers</h1>
         <button
-          className="bg-gradient-to-r from-slate-600 to-slate-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-0.5  hover:from-blue-900 hover:to-blue-900 transition-all duration-300"
+          className="mt-4 md:mt-0 bg-gradient-to-r from-slate-600 to-slate-700 text-white px-4 md:px-6 py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-0.5 hover:from-blue-900 hover:to-blue-900 transition-all duration-300"
           onClick={() => setIsFormOpen(true)}
         >
           + Add Customer
@@ -109,7 +109,7 @@ const Customers = () => {
 
       {isFormOpen && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl">
+            <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Customer' : 'Add New Customer'}</h2>
               <button
@@ -120,64 +120,66 @@ const Customers = () => {
               </button>
             </div>
             <form onSubmit={handleSubmit}>
-              <div className="mb-5">
-                <label className="block mb-2 text-gray-700 font-medium">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter customer name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300"
-                />
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 text-gray-700 font-medium">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter email address"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300"
-                />
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 text-gray-700 font-medium">Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter phone number"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300"
-                />
-              </div>
-              <div className="mb-5">
-                <label className="block mb-2 text-gray-700 font-medium">Address</label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  placeholder="Enter address"
-                  rows="3"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300 resize-none"
-                />
-              </div>
-              <div className="flex gap-4 justify-end mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                  <div>
+                    <label className="block mb-2 text-gray-700 font-medium">Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Enter customer name"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-2 text-gray-700 font-medium">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Enter email address"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-2 text-gray-700 font-medium">Phone</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Enter phone number"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block mb-2 text-gray-700 font-medium">Address</label>
+                    <textarea
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      placeholder="Enter address"
+                      rows="3"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300 resize-none"
+                    />
+                  </div>
+                </div>
+              <div className="flex flex-col md:flex-row gap-3 justify-end mt-6">
                 <button
                   type="button"
-                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 hover:shadow-md transition-all duration-300"
+                  className="w-full md:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 hover:shadow-md transition-all duration-300"
                   onClick={() => { setIsFormOpen(false); setEditingId(null); setFormData({ name: "", email: "", phone: "", address: "" }); }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg font-medium hover:from-blue-900 hover:to-blue-900 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300"
+                  className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg font-medium hover:from-blue-900 hover:to-blue-900 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300"
                 >
                   {editingId ? 'Update Customer' : 'Save Customer'}
                 </button>
@@ -188,50 +190,53 @@ const Customers = () => {
       )}
 
       <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden animate-fade-in">
-        <table className="w-full">
-          <thead className="bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-200">
-            <tr>
-              <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Name</th>
-              <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Email</th>
-              <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Phone</th>
-              <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Address</th>
-              <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customers.length === 0 ? (
+        <div className="overflow-x-auto">
+          <table className="min-w-[800px] md:min-w-full w-full text-sm">
+            <thead className="bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-200">
               <tr>
-                <td colSpan="5" className="text-center text-gray-400 italic py-10">
-                  No customers found. Add your first customer!
-                </td>
+                <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Name</th>
+                <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Email</th>
+                <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Phone</th>
+                <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Address</th>
+                <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Actions</th>
               </tr>
-            ) : (
-              customers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-gray-50 transition-all duration-300 border-b border-gray-100">
-                  <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.name}</td>
-                  <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.email}</td>
-                  <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.phone}</td>
-                  <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.address}</td>
-                  <td className="px-5 py-4 border-b border-gray-100">
-                    <button
-                      className="px-4 py-2 bg-gray-700 text-white rounded-md text-sm hover:bg-green-900 hover:shadow-md transition-all duration-300"
-                      onClick={() => handleEdit(customer.id)}
-                    >
-                      Edit
-                    </button>
-                    &nbsp;
-                    <button
-                      className="px-4 py-2 bg-red-700 text-white rounded-md text-sm hover:bg-red-800 hover:shadow-md transition-all duration-300"
-                      onClick={() => handleDelete(customer.id)}
-                    >
-                      Delete
-                    </button>
+            </thead>
+            <tbody>
+              {customers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center text-gray-400 italic py-10">
+                    No customers found. Add your first customer!
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                customers.map((customer) => (
+                  <tr key={customer.id} className="hover:bg-gray-50 transition-all duration-300 border-b border-gray-100">
+                    <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.name}</td>
+                    <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.email}</td>
+                    <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.phone}</td>
+                    <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.address}</td>
+                    <td className="px-5 py-4 border-b border-gray-100">
+                      <div className="flex flex-col md:flex-row gap-2">
+                        <button
+                          className="w-full md:w-auto px-4 py-2 bg-gray-700 text-white rounded-md text-sm hover:bg-green-900 hover:shadow-md transition-all duration-300"
+                          onClick={() => handleEdit(customer.id)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="w-full md:w-auto px-4 py-2 bg-red-700 text-white rounded-md text-sm hover:bg-red-800 hover:shadow-md transition-all duration-300"
+                          onClick={() => handleDelete(customer.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

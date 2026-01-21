@@ -114,10 +114,10 @@ const Bills = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8 animate-slide-down">
-        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Invoices</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 animate-slide-down">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">Invoices</h1>
         <button
-          className="bg-gradient-to-r from-slate-600 to-slate-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-0.5 hover:from-blue-900 hover:to-blue-900 transition-all duration-300"
+          className="mt-4 md:mt-0 bg-gradient-to-r from-slate-600 to-slate-700 text-white px-4 md:px-6 py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-0.5 hover:from-blue-900 hover:to-blue-900 transition-all duration-300"
           onClick={() => setIsFormOpen(true)}
         >
           + Create Invoice
@@ -171,7 +171,7 @@ const Bills = () => {
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-5 mb-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                 <div>
                   <label className="block mb-2 text-gray-700 font-medium">Quantity</label>
                   <input
@@ -237,7 +237,8 @@ const Bills = () => {
       )}
 
       <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden animate-fade-in">
-        <table className="w-full">
+        <div className="overflow-x-auto">
+          <table className="min-w-[900px] md:min-w-full w-full text-sm">
           <thead className="bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-200">
             <tr>
               <th className="px-5 py-4 text-left text-gray-600 font-semibold border-b-2 border-gray-200">Invoice No.</th>
@@ -296,7 +297,8 @@ const Bills = () => {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

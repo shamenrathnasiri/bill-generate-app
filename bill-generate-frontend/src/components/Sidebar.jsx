@@ -2,11 +2,11 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import Logo from "/assets/LOGO.png";
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen = false }) => {
   return (
-    <div className="w-64 h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white fixed left-0 top-0 flex flex-col shadow-2xl border-r border-gray-700/50">
+    <div className={`fixed z-40 left-0 top-0 h-full w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col shadow-2xl border-r border-gray-700/50 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
       <div className="p-6 border-b border-gray-700 bg-gradient-to-r from-gray-900 to-gray-800 flex flex-col items-center text-center gap-2">
-        <img src={Logo} alt="ABC Graphics Logo" className="h-28 w-auto drop-shadow-[0_0_25px_rgba(0,0,0,0.6)]" />
+        <img src={Logo} alt="ABC Graphics Logo" className="h-20 md:h-28 w-auto drop-shadow-[0_0_25px_rgba(0,0,0,0.6)]" />
         <h2 className="text-2xl -mt-5 font-bold text-white tracking-wider drop-shadow-lg">ABC Graphics</h2>
         <p className="text-xs text-gray-400 mt-1 font-medium">Billing Management System</p>
       </div>

@@ -194,7 +194,7 @@ const Services = () => {
             >
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-lg font-semibold text-slate-800">{service.name}</h3>
-                <span className="bg-gradient-to-br from-[#FD7600] via-[#EB9402] to-[#E5BF00] text-black px-3 py-1 rounded-full text-sm font-bold group-hover:shadow-md transition-all duration-300">
+                <span className="bg-gradient-to-br from-[#FD7600] via-[#EB9402] to-[#E5BF00] text-black px-1 py-1 rounded-full text-sm font-bold group-hover:shadow-md transition-all duration-300">
                   Rs. {service.price.toFixed(2)}
                 </span>
               </div>
