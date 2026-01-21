@@ -14,7 +14,7 @@ import { saveAs } from "file-saver";
 const styles = StyleSheet.create({
   page: {
     padding: 0,
-    fontSize: 9,
+    fontSize: 11,
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff",
   },
@@ -33,16 +33,13 @@ const styles = StyleSheet.create({
   logoColumn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
     flex: 1,
   },
   logoImage: {
-    width: 50,
-    height: 50,
+    width: 90,
+    height: 90,
     borderRadius: 8,
-    // REMOVED: backgroundColor: "#ffffff",
-    // REMOVED: padding: 5,
-    // REMOVED: border: "1px solid #4b5563",
+    marginRight: 12,
   },
   companyInfo: {
     flex: 1,
@@ -54,19 +51,19 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   companyTagline: {
-    fontSize: 8,
+    fontSize: 9,
     color: "#d1d5db", // Light gray text
     marginBottom: 4,
   },
   contactRow: {
     flexDirection: "row",
-    gap: 10,
     flexWrap: "wrap",
   },
   contactItem: {
-    fontSize: 7,
+    fontSize: 9,
     color: "#d1d5db", // Light gray text
     marginBottom: 2,
+    marginRight: 8,
   },
   
   // Invoice Header
@@ -93,7 +90,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   invoiceDetail: {
-    fontSize: 8,
+    fontSize: 9,
     color: "#d1d5db", // Light gray text
     marginBottom: 2,
   },
@@ -102,7 +99,6 @@ const styles = StyleSheet.create({
   twoColumn: {
     flexDirection: "row",
     paddingHorizontal: 25,
-    gap: 20,
     marginBottom: 15,
   },
   column: {
@@ -114,22 +110,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f5f9",
     padding: 12,
     borderRadius: 6,
-    borderLeft: "3px solid #3b82f6",
+    borderLeftWidth: 3,
+    borderLeftColor: "#3b82f6",
   },
   customerTitle: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "bold",
     color: "#1e293b",
     marginBottom: 8,
   },
   customerName: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#1e293b",
     marginBottom: 4,
   },
   customerDetail: {
-    fontSize: 8,
+    fontSize: 10,
     color: "#475569",
     marginBottom: 2,
   },
@@ -167,10 +164,12 @@ const styles = StyleSheet.create({
     color: "#1e293b",
     marginBottom: 8,
     paddingBottom: 4,
-    borderBottom: "1px solid #e2e8f0",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
   },
   table: {
-    border: "1px solid #e2e8f0",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
     borderRadius: 6,
     overflow: "hidden",
   },
@@ -182,19 +181,21 @@ const styles = StyleSheet.create({
   tableHeaderText: {
     color: "#ffffff", // White text
     fontWeight: "bold",
-    fontSize: 8,
+    fontSize: 9,
     textTransform: "uppercase",
   },
   tableRow: {
     flexDirection: "row",
     padding: 8,
-    borderBottom: "1px solid #f1f5f9",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
     backgroundColor: "#ffffff",
   },
   tableRowAlt: {
     flexDirection: "row",
     padding: 8,
-    borderBottom: "1px solid #f1f5f9",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
     backgroundColor: "#f8fafc",
   },
   colService: { width: "45%", paddingRight: 5 },
@@ -210,7 +211,8 @@ const styles = StyleSheet.create({
   },
   totalsBox: {
     width: 200,
-    border: "1px solid #e2e8f0",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
     borderRadius: 6,
     overflow: "hidden",
   },
@@ -218,7 +220,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 8,
-    borderBottom: "1px solid #f1f5f9",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
   },
   grandTotalRow: {
     flexDirection: "row",
@@ -227,21 +230,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#374151", // Dark gray background
   },
   totalLabel: {
-    fontSize: 9,
+    fontSize: 11,
     color: "#475569",
   },
   totalValue: {
-    fontSize: 9,
+    fontSize: 11,
     color: "#1e293b",
     fontWeight: "bold",
   },
   grandTotalLabel: {
-    fontSize: 10,
+    fontSize: 12,
     color: "#ffffff", // White text
     fontWeight: "bold",
   },
   grandTotalValue: {
-    fontSize: 10,
+    fontSize: 12,
     color: "#ffffff", // White text
     fontWeight: "bold",
   },
@@ -253,7 +256,6 @@ const styles = StyleSheet.create({
   },
   paymentGrid: {
     flexDirection: "row",
-    gap: 12,
     marginTop: 8,
   },
   paymentColumn: {
@@ -263,28 +265,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
     padding: 10,
     borderRadius: 6,
-    border: "1px solid #e2e8f0",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
     marginBottom: 8,
   },
   bankName: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: "bold",
     color: "#1e293b",
     marginBottom: 2,
   },
   accountNumber: {
-    fontSize: 9,
+    fontSize: 11,
     color: "#1e40af",
     fontWeight: "bold",
     marginBottom: 2,
   },
   accountHolder: {
-    fontSize: 7,
+    fontSize: 9,
     color: "#64748b",
     marginBottom: 2,
   },
   branch: {
-    fontSize: 7,
+    fontSize: 9,
     color: "#64748b",
   },
   
@@ -293,7 +296,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingVertical: 15,
     backgroundColor: "#374151", // Dark gray background
-    borderTop: "1px solid #4b5563",
+    borderTopWidth: 1,
+    borderTopColor: "#4b5563",
     marginTop: 10,
   },
   thankYou: {
@@ -301,27 +305,27 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   thankYouText: {
-    fontSize: 10,
+    fontSize: 12,
     color: "#ffffff", // White text
     fontWeight: "bold",
     marginBottom: 3,
   },
   thankYouSubtext: {
-    fontSize: 8,
+    fontSize: 10,
     color: "#d1d5db", // Light gray text
   },
   footerContact: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 15,
     marginBottom: 5,
   },
   footerContactItem: {
-    fontSize: 7,
+    fontSize: 9,
     color: "#d1d5db", // Light gray text
+    marginRight: 8,
   },
   footerCopyright: {
-    fontSize: 7,
+    fontSize: 9,
     color: "#9ca3af", // Medium gray text
     textAlign: "center",
   },
