@@ -9,6 +9,7 @@ const Services = () => {
     description: "",
     price: "",
   });
+  const [editingId, setEditingId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Fetch services on component mount
@@ -40,11 +41,19 @@ const Services = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await serviceService.create({
-        ...formData,
-        price: parseFloat(formData.price),
-      });
+      if (editingId) {
+        await serviceService.update(editingId, {
+          ...formData,
+          price: parseFloat(formData.price),
+        });
+      } else {
+        await serviceService.create({
+          ...formData,
+          price: parseFloat(formData.price),
+        });
+      }
       setFormData({ name: "", description: "", price: "" });
+      setEditingId(null);
       setIsFormOpen(false);
       fetchServices();
     } catch (error) {
@@ -62,6 +71,24 @@ const Services = () => {
       console.error("Error deleting service:", error);
       alert("Failed to delete service");
     }
+  };
+
+  const handleEdit = (id) => {
+    (async () => {
+      try {
+        const data = await serviceService.getById(id);
+        setFormData({
+          name: data.name || "",
+          description: data.description || "",
+          price: data.price != null ? data.price.toString() : "",
+        });
+        setEditingId(id);
+        setIsFormOpen(true);
+      } catch (error) {
+        console.error("Error loading service for edit:", error);
+        alert("Failed to load service for editing");
+      }
+    })();
   };
 
   if (loading) {
@@ -88,10 +115,10 @@ const Services = () => {
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
           <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Add New Service</h2>
+              <h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Service' : 'Add New Service'}</h2>
               <button
                 className="text-3xl text-gray-400 hover:text-gray-600 hover:rotate-90 transition-all duration-300"
-                onClick={() => setIsFormOpen(false)}
+                onClick={() => { setIsFormOpen(false); setEditingId(null); setFormData({ name: "", description: "", price: "" }); }}
               >
                 ×
               </button>
@@ -138,7 +165,7 @@ const Services = () => {
                 <button
                   type="button"
                   className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 hover:shadow-md transition-all duration-300"
-                  onClick={() => setIsFormOpen(false)}
+                  onClick={() => { setIsFormOpen(false); setEditingId(null); setFormData({ name: "", description: "", price: "" }); }}
                 >
                   Cancel
                 </button>
@@ -146,7 +173,7 @@ const Services = () => {
                   type="submit"
                   className="px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg font-medium hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300"
                 >
-                  Save Service
+                  {editingId ? 'Update Service' : 'Save Service'}
                 </button>
               </div>
             </form>
@@ -167,7 +194,7 @@ const Services = () => {
             >
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-lg font-semibold text-slate-800">{service.name}</h3>
-                <span className="bg-gradient-to-r from-gray-700 to-gray-900 text-white px-3 py-1 rounded-full text-sm font-bold group-hover:shadow-md transition-all duration-300">
+                <span className="bg-gradient-to-br from-[#FD7600] via-[#EB9402] to-[#E5BF00] text-black px-3 py-1 rounded-full text-sm font-bold group-hover:shadow-md transition-all duration-300">
                   Rs. {service.price.toFixed(2)}
                 </span>
               </div>
@@ -176,7 +203,13 @@ const Services = () => {
               </p>
               <div className="flex gap-3">
                 <button
-                  className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm hover:bg-gray-800 hover:shadow-md transition-all duration-300"
+                  className="px-4 py-2 bg-gray-800 text-white rounded-md text-sm hover:bg-green-700 hover:shadow-md transition-all duration-300"
+                  onClick={() => handleEdit(service.id)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="px-4 py-2 bg-red-900 text-white rounded-md text-sm hover:bg-red-800 hover:shadow-md transition-all duration-300"
                   onClick={() => handleDelete(service.id)}
                 >
                   Delete
