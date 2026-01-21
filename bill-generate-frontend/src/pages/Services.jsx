@@ -1,13 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import serviceService from "../controller/serviceService";
 
 const Services = () => {
   const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
   });
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // Fetch services on component mount
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      const data = await serviceService.getAll();
+      setServices(data);
+    } catch (error) {
+      console.error("Error fetching services:", error);
+      alert("Failed to fetch services");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -17,21 +37,40 @@ const Services = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newService = {
-      id: Date.now(),
-      ...formData,
-      price: parseFloat(formData.price),
-    };
-    setServices((prev) => [...prev, newService]);
-    setFormData({ name: "", description: "", price: "" });
-    setIsFormOpen(false);
+    try {
+      await serviceService.create({
+        ...formData,
+        price: parseFloat(formData.price),
+      });
+      setFormData({ name: "", description: "", price: "" });
+      setIsFormOpen(false);
+      fetchServices();
+    } catch (error) {
+      console.error("Error creating service:", error);
+      alert("Failed to create service");
+    }
   };
 
-  const handleDelete = (id) => {
-    setServices((prev) => prev.filter((service) => service.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this service?")) return;
+    try {
+      await serviceService.delete(id);
+      fetchServices();
+    } catch (error) {
+      console.error("Error deleting service:", error);
+      alert("Failed to delete service");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-gray-500">Loading services...</div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -129,7 +168,7 @@ const Services = () => {
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-lg font-semibold text-slate-800">{service.name}</h3>
                 <span className="bg-gradient-to-r from-gray-700 to-gray-900 text-white px-3 py-1 rounded-full text-sm font-bold group-hover:shadow-md transition-all duration-300">
-                  ${service.price.toFixed(2)}
+                  Rs. {service.price.toFixed(2)}
                 </span>
               </div>
               <p className="text-gray-500 mb-5 leading-relaxed">

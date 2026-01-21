@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import customerService from "../controller/customerService";
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -9,6 +11,24 @@ const Customers = () => {
     address: "",
   });
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // Fetch customers on component mount
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const data = await customerService.getAll();
+      setCustomers(data);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      alert("Failed to fetch customers");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -18,20 +38,37 @@ const Customers = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newCustomer = {
-      id: Date.now(),
-      ...formData,
-    };
-    setCustomers((prev) => [...prev, newCustomer]);
-    setFormData({ name: "", email: "", phone: "", address: "" });
-    setIsFormOpen(false);
+    try {
+      await customerService.create(formData);
+      setFormData({ name: "", email: "", phone: "", address: "" });
+      setIsFormOpen(false);
+      fetchCustomers();
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      alert("Failed to create customer");
+    }
   };
 
-  const handleDelete = (id) => {
-    setCustomers((prev) => prev.filter((customer) => customer.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this customer?")) return;
+    try {
+      await customerService.delete(id);
+      fetchCustomers();
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+      alert("Failed to delete customer");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-gray-500">Loading customers...</div>
+      </div>
+    );
+  }
 
   return (
     <div>
