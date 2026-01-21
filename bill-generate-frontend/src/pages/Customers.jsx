@@ -38,7 +38,7 @@ const Customers = () => {
       <div className="flex justify-between items-center mb-8 animate-slide-down">
         <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Customers</h1>
         <button
-          className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-0.5 hover:from-gray-900 hover:to-black transition-all duration-300"
+          className="bg-gradient-to-r from-slate-600 to-slate-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-0.5  hover:from-blue-900 hover:to-blue-900 transition-all duration-300"
           onClick={() => setIsFormOpen(true)}
         >
           + Add Customer
@@ -115,7 +115,7 @@ const Customers = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300"
+                  className="px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg font-medium hover:from-blue-900 hover:to-blue-900 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300"
                 >
                   Save Customer
                 </button>

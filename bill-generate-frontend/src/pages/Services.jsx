@@ -38,7 +38,7 @@ const Services = () => {
       <div className="flex justify-between items-center mb-8 animate-slide-down">
         <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Services</h1>
         <button
-          className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-0.5 hover:from-gray-900 hover:to-black transition-all duration-300"
+          className="bg-gradient-to-r from-slate-600 to-slate-700 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-0.5 hover:from-blue-900 hover:to-blue-900 transition-all duration-300"
           onClick={() => setIsFormOpen(true)}
         >
           + Add Service
@@ -82,7 +82,7 @@ const Services = () => {
                 />
               </div>
               <div className="mb-5">
-                <label className="block mb-2 text-gray-700 font-medium">Price ($)</label>
+                <label className="block mb-2 text-gray-700 font-medium">Price (Rs.)</label>
                 <input
                   type="number"
                   name="price"

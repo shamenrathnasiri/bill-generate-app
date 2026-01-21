@@ -20,7 +20,7 @@ const Header = () => {
           />
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-gray-600 transition-colors">🔍</span>
         </div>
-        <button className="px-5 py-2 bg-gray-900 text-white rounded-lg shadow-md hover:shadow-lg hover:bg-gray-800 hover:-translate-y-0.5 transition-all duration-300 font-semibold tracking-wide">New Bill</button>
+
         <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer">A</div>
       </div>
     </header>
