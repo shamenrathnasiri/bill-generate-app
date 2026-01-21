@@ -35,10 +35,10 @@ const Services = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-slate-800">Services</h1>
+      <div className="flex justify-between items-center mb-8 animate-slide-down">
+        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Services</h1>
         <button
-          className="bg-gradient-to-r from-cyan-400 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/40 transition-all duration-200"
+          className="bg-gradient-to-r from-gray-800 to-gray-900 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg hover:-translate-y-0.5 hover:from-gray-900 hover:to-black transition-all duration-300"
           onClick={() => setIsFormOpen(true)}
         >
           + Add Service
@@ -49,9 +49,9 @@ const Services = () => {
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
           <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-slate-800">Add New Service</h2>
+              <h2 className="text-xl font-bold text-gray-900">Add New Service</h2>
               <button
-                className="text-3xl text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-3xl text-gray-400 hover:text-gray-600 hover:rotate-90 transition-all duration-300"
                 onClick={() => setIsFormOpen(false)}
               >
                 ×
@@ -67,7 +67,7 @@ const Services = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="Enter service name"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300"
                 />
               </div>
               <div className="mb-5">
@@ -78,7 +78,7 @@ const Services = () => {
                   onChange={handleInputChange}
                   placeholder="Enter service description"
                   rows="3"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300 resize-none"
                 />
               </div>
               <div className="mb-5">
@@ -92,20 +92,20 @@ const Services = () => {
                   placeholder="Enter price"
                   min="0"
                   step="0.01"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-300"
                 />
               </div>
               <div className="flex gap-4 justify-end mt-6">
                 <button
                   type="button"
-                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 hover:shadow-md transition-all duration-300"
                   onClick={() => setIsFormOpen(false)}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-cyan-400 to-blue-600 text-white rounded-lg font-medium hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                  className="px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg font-medium hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300"
                 >
                   Save Service
                 </button>
@@ -124,11 +124,11 @@ const Services = () => {
           services.map((service) => (
             <div
               key={service.id}
-              className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="bg-white rounded-xl p-6 shadow-md border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group animate-fade-in"
             >
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-lg font-semibold text-slate-800">{service.name}</h3>
-                <span className="bg-gradient-to-r from-cyan-400 to-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                <span className="bg-gradient-to-r from-gray-700 to-gray-900 text-white px-3 py-1 rounded-full text-sm font-bold group-hover:shadow-md transition-all duration-300">
                   ${service.price.toFixed(2)}
                 </span>
               </div>
@@ -137,7 +137,7 @@ const Services = () => {
               </p>
               <div className="flex gap-3">
                 <button
-                  className="px-4 py-2 bg-red-500 text-white rounded-md text-sm hover:bg-red-600 transition-colors"
+                  className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm hover:bg-gray-800 hover:shadow-md transition-all duration-300"
                   onClick={() => handleDelete(service.id)}
                 >
                   Delete
