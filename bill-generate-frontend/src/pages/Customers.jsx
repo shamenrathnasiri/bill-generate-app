@@ -10,6 +10,7 @@ const Customers = () => {
     phone: "",
     address: "",
   });
+  const [editingId, setEditingId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Fetch customers on component mount
@@ -41,8 +42,13 @@ const Customers = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await customerService.create(formData);
+      if (editingId) {
+        await customerService.update(editingId, formData);
+      } else {
+        await customerService.create(formData);
+      }
       setFormData({ name: "", email: "", phone: "", address: "" });
+      setEditingId(null);
       setIsFormOpen(false);
       fetchCustomers();
     } catch (error) {
@@ -61,6 +67,25 @@ const Customers = () => {
       alert("Failed to delete customer");
     }
   };
+  const handleEdit = (id) => {
+    // Load customer data and open form in edit mode
+    (async () => {
+      try {
+        const data = await customerService.getById(id);
+        setFormData({
+          name: data.name || "",
+          email: data.email || "",
+          phone: data.phone || "",
+          address: data.address || "",
+        });
+        setEditingId(id);
+        setIsFormOpen(true);
+      } catch (error) {
+        console.error("Error loading customer for edit:", error);
+        alert("Failed to load customer for editing");
+      }
+    })();
+  }
 
   if (loading) {
     return (
@@ -86,10 +111,10 @@ const Customers = () => {
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
           <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Add New Customer</h2>
+              <h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Customer' : 'Add New Customer'}</h2>
               <button
                 className="text-3xl text-gray-400 hover:text-gray-600 hover:rotate-90 transition-all duration-300"
-                onClick={() => setIsFormOpen(false)}
+                onClick={() => { setIsFormOpen(false); setEditingId(null); setFormData({ name: "", email: "", phone: "", address: "" }); }}
               >
                 ×
               </button>
@@ -146,7 +171,7 @@ const Customers = () => {
                 <button
                   type="button"
                   className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 hover:shadow-md transition-all duration-300"
-                  onClick={() => setIsFormOpen(false)}
+                  onClick={() => { setIsFormOpen(false); setEditingId(null); setFormData({ name: "", email: "", phone: "", address: "" }); }}
                 >
                   Cancel
                 </button>
@@ -154,7 +179,7 @@ const Customers = () => {
                   type="submit"
                   className="px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg font-medium hover:from-blue-900 hover:to-blue-900 hover:-translate-y-0.5 hover:shadow-md transition-all duration-300"
                 >
-                  Save Customer
+                  {editingId ? 'Update Customer' : 'Save Customer'}
                 </button>
               </div>
             </form>
@@ -189,7 +214,14 @@ const Customers = () => {
                   <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.address}</td>
                   <td className="px-5 py-4 border-b border-gray-100">
                     <button
-                      className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm hover:bg-gray-800 hover:shadow-md transition-all duration-300"
+                      className="px-4 py-2 bg-gray-700 text-white rounded-md text-sm hover:bg-green-900 hover:shadow-md transition-all duration-300"
+                      onClick={() => handleEdit(customer.id)}
+                    >
+                      Edit
+                    </button>
+                    &nbsp;
+                    <button
+                      className="px-4 py-2 bg-red-700 text-white rounded-md text-sm hover:bg-red-800 hover:shadow-md transition-all duration-300"
                       onClick={() => handleDelete(customer.id)}
                     >
                       Delete
