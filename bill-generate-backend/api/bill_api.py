@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import db, Bill, Customer, Service
+from models import db, Bill, BillItem, Customer, Service
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 
@@ -88,13 +88,34 @@ def get_bill(id):
 @bill_bp.route('', methods=['POST'])
 def create_bill():
     try:
-        data = request.get_json()
-        
+        data = request.get_json() or {}
+
         # Validate required fields
-        if not data.get('customer_id') or not data.get('service_id'):
+        if not data.get('customer_id'):
             return jsonify({
                 'success': False,
-                'message': 'Customer and service are required'
+                'message': 'Customer is required'
+            }), 400
+
+        # Accept either new format: { items: [...] } or legacy single-service payload.
+        items = data.get('items')
+        if not items:
+            if data.get('service_id'):
+                items = [{
+                    'service_id': data.get('service_id'),
+                    'quantity': data.get('quantity', 1),
+                    'unit_price': data.get('unit_price')
+                }]
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'At least one service item is required'
+                }), 400
+
+        if not isinstance(items, list) or len(items) == 0:
+            return jsonify({
+                'success': False,
+                'message': 'Items must be a non-empty list'
             }), 400
         
         # Verify customer exists
@@ -104,18 +125,45 @@ def create_bill():
                 'success': False,
                 'message': 'Customer not found'
             }), 404
-        
-        # Verify service exists
-        service = Service.query.filter_by(id=data['service_id'], is_deleted=False).first()
-        if not service:
-            return jsonify({
-                'success': False,
-                'message': 'Service not found'
-            }), 404
-        
-        quantity = int(data.get('quantity', 1))
-        unit_price = float(data.get('unit_price', service.price))
-        total = quantity * unit_price
+
+        # Validate + normalize items before opening a write transaction.
+        normalized_items = []
+        for idx, item in enumerate(items):
+            service_id = item.get('service_id')
+            if service_id is None or service_id == '':
+                return jsonify({
+                    'success': False,
+                    'message': f"Item {idx + 1}: service_id is required"
+                }), 400
+            service_id = int(service_id)
+
+            service = Service.query.filter_by(id=service_id, is_deleted=False).first()
+            if not service:
+                return jsonify({
+                    'success': False,
+                    'message': f'Service not found (id: {service_id})'
+                }), 404
+
+            quantity = int(item.get('quantity', 1))
+            if quantity < 1:
+                return jsonify({
+                    'success': False,
+                    'message': f"Item {idx + 1}: quantity must be >= 1"
+                }), 400
+
+            unit_price = item.get('unit_price')
+            unit_price = float(unit_price) if unit_price is not None and unit_price != '' else float(service.price)
+            if unit_price < 0:
+                return jsonify({
+                    'success': False,
+                    'message': f"Item {idx + 1}: unit_price must be >= 0"
+                }), 400
+
+            normalized_items.append({
+                'service_id': service.id,
+                'quantity': quantity,
+                'unit_price': unit_price,
+            })
         
         # Parse date
         bill_date = datetime.strptime(data.get('date', datetime.now().strftime('%Y-%m-%d')), '%Y-%m-%d').date()
@@ -148,16 +196,28 @@ def create_bill():
             bill = Bill(
                 bill_number=invoice_number,
                 customer_id=data['customer_id'],
-                service_id=data['service_id'],
-                quantity=quantity,
-                unit_price=unit_price,
-                total=total,
                 date=bill_date,
                 is_paid=data.get('is_paid', False)
             )
 
             try:
                 db.session.add(bill)
+                db.session.flush()
+
+                total = 0.0
+                for item in normalized_items:
+                    line_total = float(item['quantity']) * float(item['unit_price'])
+                    total += line_total
+
+                    db.session.add(BillItem(
+                        bill_id=bill.id,
+                        service_id=item['service_id'],
+                        quantity=item['quantity'],
+                        unit_price=item['unit_price'],
+                        line_total=line_total,
+                    ))
+
+                bill.total = total
                 db.session.commit()
                 break
             except IntegrityError as e:
@@ -201,7 +261,7 @@ def update_bill(id):
                 'message': 'Bill not found'
             }), 404
         
-        data = request.get_json()
+        data = request.get_json() or {}
         
         # Update customer if provided
         if data.get('customer_id'):
@@ -213,28 +273,73 @@ def update_bill(id):
                 }), 404
             bill.customer_id = data['customer_id']
         
-        # Update service if provided
-        if data.get('service_id'):
-            service = Service.query.filter_by(id=data['service_id'], is_deleted=False).first()
-            if not service:
-                return jsonify({
-                    'success': False,
-                    'message': 'Service not found'
-                }), 404
-            bill.service_id = data['service_id']
-        
-        # Update other fields
-        if data.get('quantity'):
-            bill.quantity = int(data['quantity'])
-        if data.get('unit_price'):
-            bill.unit_price = float(data['unit_price'])
+        # Update date / paid
         if data.get('date'):
             bill.date = datetime.strptime(data['date'], '%Y-%m-%d').date()
         if 'is_paid' in data:
             bill.is_paid = data['is_paid']
-        
-        # Recalculate total
-        bill.total = bill.quantity * bill.unit_price
+
+        # Update items (new format) or accept legacy single-item updates.
+        items = data.get('items')
+        if items is None and data.get('service_id'):
+            items = [{
+                'service_id': data.get('service_id'),
+                'quantity': data.get('quantity', 1),
+                'unit_price': data.get('unit_price')
+            }]
+
+        if items is not None:
+            if not isinstance(items, list) or len(items) == 0:
+                return jsonify({
+                    'success': False,
+                    'message': 'Items must be a non-empty list'
+                }), 400
+
+            # Replace all items
+            bill.items.clear()
+            total = 0.0
+            for idx, item in enumerate(items):
+                service_id = item.get('service_id')
+                if service_id is None or service_id == '':
+                    return jsonify({
+                        'success': False,
+                        'message': f"Item {idx + 1}: service_id is required"
+                    }), 400
+
+                service_id = int(service_id)
+
+                service = Service.query.filter_by(id=service_id, is_deleted=False).first()
+                if not service:
+                    return jsonify({
+                        'success': False,
+                        'message': f'Service not found (id: {service_id})'
+                    }), 404
+
+                quantity = int(item.get('quantity', 1))
+                if quantity < 1:
+                    return jsonify({
+                        'success': False,
+                        'message': f"Item {idx + 1}: quantity must be >= 1"
+                    }), 400
+
+                unit_price = item.get('unit_price')
+                unit_price = float(unit_price) if unit_price is not None and unit_price != '' else float(service.price)
+                if unit_price < 0:
+                    return jsonify({
+                        'success': False,
+                        'message': f"Item {idx + 1}: unit_price must be >= 0"
+                    }), 400
+
+                line_total = float(quantity) * float(unit_price)
+                total += line_total
+                bill.items.append(BillItem(
+                    service_id=service.id,
+                    quantity=quantity,
+                    unit_price=unit_price,
+                    line_total=line_total,
+                ))
+
+            bill.total = total
         
         db.session.commit()
         
