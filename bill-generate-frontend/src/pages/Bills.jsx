@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import billService from "../controller/billService";
 import customerService from "../controller/customerService";
 import serviceService from "../controller/serviceService";
+import BillPDFModal from "../components/BillPDF";
 
 const Bills = () => {
   const [bills, setBills] = useState([]);
@@ -19,6 +20,8 @@ const Bills = () => {
     quantity: 1,
     unit_price: "",
   });
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
+  const [selectedBillForPDF, setSelectedBillForPDF] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -121,7 +124,7 @@ const Bills = () => {
       return;
     }
     try {
-      await billService.create({
+      const createdBill = await billService.create({
         customer_id: parseInt(formData.customer_id),
         date: formData.date,
         items: formData.items.map((item) => ({
@@ -130,6 +133,26 @@ const Bills = () => {
           unit_price: parseFloat(item.unit_price),
         })),
       });
+      
+      // Fetch the complete bill data with all details
+      const billsData = await billService.getAll();
+      setBills(billsData);
+      
+      // Find the newly created bill to show in PDF
+      const newBill = billsData.find(b => b.id === createdBill.id);
+      if (newBill) {
+        // Add customer details to the bill for PDF
+        const customer = customers.find(c => c.id === parseInt(formData.customer_id));
+        const billWithDetails = {
+          ...newBill,
+          customer_email: customer?.email || "",
+          customer_phone: customer?.phone || "",
+          customer_address: customer?.address || "",
+        };
+        setSelectedBillForPDF(billWithDetails);
+        setIsPDFModalOpen(true);
+      }
+      
       setFormData({
         customer_id: "",
         date: new Date().toISOString().split("T")[0],
@@ -141,7 +164,6 @@ const Bills = () => {
         unit_price: "",
       });
       setIsFormOpen(false);
-      fetchData();
     } catch (error) {
       console.error("Error creating bill:", error);
       alert("Failed to create bill");
@@ -190,8 +212,8 @@ const Bills = () => {
       </div>
 
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className="flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-16">
+          <div className="flex w-full max-w-6xl max-h-[90vh] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
             <div className="flex items-start justify-between bg-slate-900 px-8 py-6 text-white">
               <div>
                 <p className="text-sm uppercase tracking-wider text-slate-300">New invoice</p>
@@ -432,12 +454,29 @@ const Bills = () => {
                     </button>
                   </td>
                   <td className="px-5 py-4 border-b border-gray-100">
-                    <button
-                      className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm hover:bg-gray-800 hover:shadow-md transition-all duration-300"
-                      onClick={() => handleDelete(bill.id)}
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 hover:shadow-md transition-all duration-300"
+                        onClick={() => {
+                          const customer = customers.find(c => c.id === bill.customer_id);
+                          setSelectedBillForPDF({
+                            ...bill,
+                            customer_email: customer?.email || "",
+                            customer_phone: customer?.phone || "",
+                            customer_address: customer?.address || "",
+                          });
+                          setIsPDFModalOpen(true);
+                        }}
+                      >
+                        View PDF
+                      </button>
+                      <button
+                        className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm hover:bg-gray-800 hover:shadow-md transition-all duration-300"
+                        onClick={() => handleDelete(bill.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -446,6 +485,16 @@ const Bills = () => {
           </table>
         </div>
       </div>
+
+      {/* PDF Preview Modal */}
+      <BillPDFModal
+        bill={selectedBillForPDF}
+        isOpen={isPDFModalOpen}
+        onClose={() => {
+          setIsPDFModalOpen(false);
+          setSelectedBillForPDF(null);
+        }}
+      />
     </div>
   );
 };
