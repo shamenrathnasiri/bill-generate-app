@@ -17,6 +17,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff",
+    position: "relative", // Added for proper footer positioning
+  },
+  
+  // Main content container - with bottom margin for footer
+  mainContent: {
+    paddingBottom: 120, // Space for footer at the bottom
   },
   
   // Top Grey Header with Logo - REMOVED WHITE BOX BEHIND LOGO
@@ -291,14 +297,17 @@ const styles = StyleSheet.create({
     color: "#64748b",
   },
   
-  // Footer
+  // Fixed Footer at the bottom
   footer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 25,
     paddingVertical: 15,
     backgroundColor: "#374151", // Dark gray background
     borderTopWidth: 1,
     borderTopColor: "#4b5563",
-    marginTop: 10,
   },
   thankYou: {
     textAlign: "center",
@@ -344,142 +353,145 @@ const BillDocument = ({ bill }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Dark Gray Header with Logo and Company Info - LOGO WITHOUT WHITE BOX */}
-        <View style={styles.headerContainer}>
-          <View style={styles.headerRow}>
-            <View style={styles.logoColumn}>
-              {/* Logo now sits directly on gray background without white box */}
-              <Image src={logoSrc} style={styles.logoImage} />
-              <View style={styles.companyInfo}>
-                <Text style={styles.companyName}>ABC Graphics</Text>
-                <Text style={styles.companyTagline}>Creativity Beyond Limits!</Text>
-                <View style={styles.contactRow}>
-                  <Text style={styles.contactItem}>Polonnaruwa</Text>
-                  <Text style={styles.contactItem}>•</Text>
-                  <Text style={styles.contactItem}>www.abcgraphics.lk</Text>
-                  <Text style={styles.contactItem}>•</Text>
-                  <Text style={styles.contactItem}>071 523 4993</Text>
+        {/* Main Content Container - ensures footer space */}
+        <View style={styles.mainContent}>
+          {/* Dark Gray Header with Logo and Company Info - LOGO WITHOUT WHITE BOX */}
+          <View style={styles.headerContainer}>
+            <View style={styles.headerRow}>
+              <View style={styles.logoColumn}>
+                {/* Logo now sits directly on gray background without white box */}
+                <Image src={logoSrc} style={styles.logoImage} />
+                <View style={styles.companyInfo}>
+                  <Text style={styles.companyName}>ABC Graphics</Text>
+                  <Text style={styles.companyTagline}>Creativity Beyond Limits!</Text>
+                  <View style={styles.contactRow}>
+                    <Text style={styles.contactItem}>Polonnaruwa</Text>
+                    <Text style={styles.contactItem}>•</Text>
+                    <Text style={styles.contactItem}>www.abcgraphics.lk</Text>
+                    <Text style={styles.contactItem}>•</Text>
+                    <Text style={styles.contactItem}>071 523 4993</Text>
+                  </View>
+                  <Text style={styles.contactItem}>abceditinggraphic@gmail.com</Text>
                 </View>
-                <Text style={styles.contactItem}>abceditinggraphic@gmail.com</Text>
+              </View>
+              
+              <View style={styles.invoiceHeader}>
+                <Text style={styles.invoiceTitle}>INVOICE</Text>
+                <Text style={styles.invoiceBadge}>#{bill.bill_number}</Text>
+                <View style={styles.invoiceDetails}>
+                  <Text style={styles.invoiceDetail}>Date: {bill.date}</Text>
+                </View>
               </View>
             </View>
-            
-            <View style={styles.invoiceHeader}>
-              <Text style={styles.invoiceTitle}>INVOICE</Text>
-              <Text style={styles.invoiceBadge}>#{bill.bill_number}</Text>
-              <View style={styles.invoiceDetails}>
-                <Text style={styles.invoiceDetail}>Date: {bill.date}</Text>
+          </View>
+
+          {/* Customer Info - Full Width */}
+          <View style={styles.twoColumn}>
+            <View style={styles.column}>
+              <Text style={styles.customerTitle}>BILL TO</Text>
+              <View style={styles.customerCard}>
+                <Text style={styles.customerName}>{bill.customer_name}</Text>
+                {bill.customer_email && (
+                  <Text style={styles.customerDetail}> {bill.customer_email}</Text>
+                )}
+                {bill.customer_phone && (
+                  <Text style={styles.customerDetail}> {bill.customer_phone}</Text>
+                )}
+                {bill.customer_address && (
+                  <Text style={styles.customerDetail}> {bill.customer_address}</Text>
+                )}
               </View>
             </View>
+          </View>
+
+          {/* Paid Status Badge */}
+          {bill.is_paid && (
+            <View style={styles.statusBadgeContainer}>
+              <View style={[styles.statusBadge, styles.paidBadge]}>
+                <Text>PAID</Text>
+              </View>
+            </View>
+          )}
+
+          {/* Items Table */}
+          <View style={styles.itemsSection}>
+            <Text style={styles.sectionTitle}>SERVICES / ITEMS</Text>
+            <View style={styles.table}>
+              <View style={styles.tableHeader}>
+                <Text style={[styles.tableHeaderText, styles.colService]}>Description</Text>
+                <Text style={[styles.tableHeaderText, styles.colQty]}>Qty</Text>
+                <Text style={[styles.tableHeaderText, styles.colPrice]}>Unit Price</Text>
+                <Text style={[styles.tableHeaderText, styles.colAmount]}>Amount</Text>
+              </View>
+
+              {items.map((item, index) => (
+                <View
+                  key={index}
+                  style={index % 2 === 0 ? styles.tableRow : styles.tableRowAlt}
+                >
+                  <Text style={styles.colService}>{item.service_name}</Text>
+                  <Text style={styles.colQty}>{item.quantity}</Text>
+                  <Text style={styles.colPrice}>Rs. {Number(item.unit_price).toFixed(2)}</Text>
+                  <Text style={styles.colAmount}>
+                    Rs. {(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Totals - Simplified (No Tax or Discount) */}
+          <View style={styles.totalsSection}>
+            <View style={styles.totalsBox}>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Subtotal</Text>
+                <Text style={styles.totalValue}>Rs. {subtotal.toFixed(2)}</Text>
+              </View>
+              <View style={styles.grandTotalRow}>
+                <Text style={styles.grandTotalLabel}>TOTAL AMOUNT</Text>
+                <Text style={styles.grandTotalValue}>Rs. {Number(bill.total).toFixed(2)}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Payment Details */}
+          <View style={styles.paymentSection}>
+            <Text style={styles.sectionTitle}>PAYMENT METHODS</Text>
+            <View style={styles.paymentGrid}>
+              <View style={styles.paymentColumn}>
+                <View style={styles.paymentCard}>
+                  <Text style={styles.bankName}>BANK OF CEYLON</Text>
+                  <Text style={styles.accountNumber}>92339910</Text>
+                  <Text style={styles.accountHolder}>H.K.B.S.Rathanasiri</Text>
+                  <Text style={styles.branch}>Kaduruwela Branch</Text>
+                </View>
+              </View>
+              
+              <View style={styles.paymentColumn}>
+                <View style={styles.paymentCard}>
+                  <Text style={styles.bankName}>PEOPLES BANK</Text>
+                  <Text style={styles.accountNumber}>005200170090177</Text>
+                  <Text style={styles.accountHolder}>H.K.B.S.Rathnasiri</Text>
+                  <Text style={styles.branch}>Polonnaruwa Branch</Text>
+                </View>
+              </View>
+              
+              <View style={styles.paymentColumn}>
+                <View style={styles.paymentCard}>
+                  <Text style={styles.bankName}>NDB BANK</Text>
+                  <Text style={styles.accountNumber}>115511917281</Text>
+                  <Text style={styles.accountHolder}>H.K.B.S.Rathnasiri</Text>
+                  <Text style={styles.branch}>Boralasgamuwa Branch</Text>
+                </View>
+              </View>
+            </View>
+            <Text style={[styles.customerDetail, { marginTop: 8 }]}>
+              * Please send the payment slip to us after payment
+            </Text>
           </View>
         </View>
 
-        {/* Customer Info - Full Width */}
-        <View style={styles.twoColumn}>
-          <View style={styles.column}>
-            <Text style={styles.customerTitle}>BILL TO</Text>
-            <View style={styles.customerCard}>
-              <Text style={styles.customerName}>{bill.customer_name}</Text>
-              {bill.customer_email && (
-                <Text style={styles.customerDetail}> {bill.customer_email}</Text>
-              )}
-              {bill.customer_phone && (
-                <Text style={styles.customerDetail}> {bill.customer_phone}</Text>
-              )}
-              {bill.customer_address && (
-                <Text style={styles.customerDetail}> {bill.customer_address}</Text>
-              )}
-            </View>
-          </View>
-        </View>
-
-        {/* Paid Status Badge */}
-        {bill.is_paid && (
-          <View style={styles.statusBadgeContainer}>
-            <View style={[styles.statusBadge, styles.paidBadge]}>
-              <Text>PAID</Text>
-            </View>
-          </View>
-        )}
-
-        {/* Items Table */}
-        <View style={styles.itemsSection}>
-          <Text style={styles.sectionTitle}>SERVICES / ITEMS</Text>
-          <View style={styles.table}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderText, styles.colService]}>Description</Text>
-              <Text style={[styles.tableHeaderText, styles.colQty]}>Qty</Text>
-              <Text style={[styles.tableHeaderText, styles.colPrice]}>Unit Price</Text>
-              <Text style={[styles.tableHeaderText, styles.colAmount]}>Amount</Text>
-            </View>
-
-            {items.map((item, index) => (
-              <View
-                key={index}
-                style={index % 2 === 0 ? styles.tableRow : styles.tableRowAlt}
-              >
-                <Text style={styles.colService}>{item.service_name}</Text>
-                <Text style={styles.colQty}>{item.quantity}</Text>
-                <Text style={styles.colPrice}>Rs. {Number(item.unit_price).toFixed(2)}</Text>
-                <Text style={styles.colAmount}>
-                  Rs. {(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Totals - Simplified (No Tax or Discount) */}
-        <View style={styles.totalsSection}>
-          <View style={styles.totalsBox}>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Subtotal</Text>
-              <Text style={styles.totalValue}>Rs. {subtotal.toFixed(2)}</Text>
-            </View>
-            <View style={styles.grandTotalRow}>
-              <Text style={styles.grandTotalLabel}>TOTAL AMOUNT</Text>
-              <Text style={styles.grandTotalValue}>Rs. {Number(bill.total).toFixed(2)}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Payment Details */}
-        <View style={styles.paymentSection}>
-          <Text style={styles.sectionTitle}>PAYMENT METHODS</Text>
-          <View style={styles.paymentGrid}>
-            <View style={styles.paymentColumn}>
-              <View style={styles.paymentCard}>
-                <Text style={styles.bankName}>BANK OF CEYLON</Text>
-                <Text style={styles.accountNumber}>92339910</Text>
-                <Text style={styles.accountHolder}>H.K.B.S.Rathanasiri</Text>
-                <Text style={styles.branch}>Kaduruwela Branch</Text>
-              </View>
-            </View>
-            
-            <View style={styles.paymentColumn}>
-              <View style={styles.paymentCard}>
-                <Text style={styles.bankName}>PEOPLES BANK</Text>
-                <Text style={styles.accountNumber}>005200170090177</Text>
-                <Text style={styles.accountHolder}>H.K.B.S.Rathnasiri</Text>
-                <Text style={styles.branch}>Polonnaruwa Branch</Text>
-              </View>
-            </View>
-            
-            <View style={styles.paymentColumn}>
-              <View style={styles.paymentCard}>
-                <Text style={styles.bankName}>NDB BANK</Text>
-                <Text style={styles.accountNumber}>115511917281</Text>
-                <Text style={styles.accountHolder}>H.K.B.S.Rathnasiri</Text>
-                <Text style={styles.branch}>Boralasgamuwa Branch</Text>
-              </View>
-            </View>
-          </View>
-          <Text style={[styles.customerDetail, { marginTop: 8 }]}>
-            * Please send the payment slip to us after payment
-          </Text>
-        </View>
-
-        {/* Footer with dark gray background */}
+        {/* Fixed Footer at bottom of page */}
         <View style={styles.footer}>
           <View style={styles.thankYou}>
             <Text style={styles.thankYouText}>Thank you for choosing ABC Graphics!</Text>
