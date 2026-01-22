@@ -96,6 +96,27 @@ const Sidebar = ({ isOpen = false }) => {
               <span className="font-semibold tracking-wide">Bills</span>
             </NavLink>
           </li>
+          <li>
+            <NavLink
+              to="/reports"
+              className={({ isActive }) =>
+                `flex items-center px-5 py-3 border-l-4 transition-all duration-300 ${
+                  isActive
+                    ? "bg-white/10 text-white border-white shadow-lg"
+                    : "text-gray-300 border-transparent hover:bg-white/10 hover:text-white hover:border-gray-500 hover:translate-x-1"
+                }`
+              }
+            >
+              <div className="mr-4 p-2 rounded-xl bg-gradient-to-br from-[#FD7600] via-[#EB9402] to-[#E5BF00] shadow-[0_0_15px_rgba(253,118,0,0.3)]">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+              </div>
+              <span className="font-semibold tracking-wide">Reports</span>
+            </NavLink>
+          </li>
         </ul>
       </nav>
     </div>
