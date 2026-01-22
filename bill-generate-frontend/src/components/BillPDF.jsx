@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderLeftWidth: 3,
     borderLeftColor: "#3b82f6",
+    alignItems: "flex-start",
   },
   customerTitle: {
     fontSize: 12,
@@ -130,11 +131,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1e293b",
     marginBottom: 4,
+    textAlign: "left",
   },
   customerDetail: {
     fontSize: 10,
     color: "#475569",
     marginBottom: 2,
+    textAlign: "left",
   },
   
   // Paid Status Badge

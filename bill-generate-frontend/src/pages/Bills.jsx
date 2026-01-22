@@ -181,9 +181,12 @@ const Bills = () => {
     }
   };
 
-  const handleTogglePaid = async (id) => {
+  const handleTogglePaid = async (bill) => {
+    if (bill.is_paid) {
+      return; // Already paid; prevent reverting
+    }
     try {
-      await billService.togglePaid(id);
+      await billService.togglePaid(bill.id);
       fetchData();
     } catch (error) {
       console.error("Error toggling paid status:", error);
@@ -442,16 +445,19 @@ const Bills = () => {
                   <td className="px-5 py-4 border-b border-gray-100 font-bold text-gray-900">Rs. {Number(bill.total).toFixed(2)}</td>
                   <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{bill.date}</td>
                   <td className="px-5 py-4 border-b border-gray-100">
-                    <button
-                      onClick={() => handleTogglePaid(bill.id)}
-                      className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 ${
-                        bill.is_paid
-                          ? "bg-green-100 text-green-800 hover:bg-green-200"
-                          : "bg-red-100 text-red-800 hover:bg-red-200"
-                      }`}
-                    >
-                      {bill.is_paid ? "Paid" : "Nonpaid"}
-                    </button>
+                    <label className={`inline-flex items-center select-none ${bill.is_paid ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}>
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={!!bill.is_paid}
+                        disabled={bill.is_paid}
+                        onChange={() => handleTogglePaid(bill)}
+                      />
+                      <div className="relative w-10 h-6 rounded-full bg-slate-300 transition peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-slate-200 peer-checked:bg-green-500 peer-checked:after:translate-x-4 rtl:peer-checked:after:-translate-x-4 after:absolute after:top-[3px] after:start-[3px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all" />
+                      <span className="ms-3 text-sm font-semibold text-slate-800">
+                        {bill.is_paid ? "Paid" : "Unpaid"}
+                      </span>
+                    </label>
                   </td>
                   <td className="px-5 py-4 border-b border-gray-100">
                     <div className="flex gap-2">
