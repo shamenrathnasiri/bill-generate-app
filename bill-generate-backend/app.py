@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from config import Config
 from models import db
+import sys
 
 def create_app():
     app = Flask(__name__)
@@ -30,4 +31,6 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, port=5000)
+    # Disable debug mode when running as packaged executable
+    is_frozen = getattr(sys, 'frozen', False)
+    app.run(debug=not is_frozen, port=5000, use_reloader=not is_frozen)
