@@ -10,6 +10,10 @@ import {
 } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 
+// Import logo from assets folder - Vite will handle this as base64 data URL
+// Using ?url to ensure it's processed as a URL/base64 by Vite
+import LogoImage from "../assets/LOGO.png";
+
 // PDF Styles
 const styles = StyleSheet.create({
   page: {
@@ -343,15 +347,34 @@ const styles = StyleSheet.create({
   },
 });
 
+// Helper function to convert image URL to base64 for PDF compatibility
+const getBase64Logo = async (url) => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error("Failed to convert logo to base64:", error);
+    return null;
+  }
+};
+
 // PDF Document Component
-const BillDocument = ({ bill }) => {
+const BillDocument = ({ bill, logoBase64 }) => {
   const items = bill.items || [];
   const subtotal = items.reduce(
     (sum, item) => sum + Number(item.quantity) * Number(item.unit_price),
     0
   );
 
-  const logoSrc = "/LOGO.png";
+  // Use base64 logo passed as prop, or fallback to imported logo
+  // This ensures the logo works in both development and production (Electron)
+  const logoSrc = logoBase64 || LogoImage;
 
   return (
     <Document>
@@ -524,16 +547,32 @@ const BillDocument = ({ bill }) => {
 const BillPDFModal = ({ bill, isOpen, onClose }) => {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [logoBase64, setLogoBase64] = useState(null);
+
+  // Convert logo to base64 on component mount for production compatibility
+  useEffect(() => {
+    const loadLogo = async () => {
+      // If LogoImage is already a data URL (base64), use it directly
+      if (LogoImage.startsWith('data:')) {
+        setLogoBase64(LogoImage);
+      } else {
+        // Convert to base64 for production/Electron compatibility
+        const base64 = await getBase64Logo(LogoImage);
+        setLogoBase64(base64 || LogoImage);
+      }
+    };
+    loadLogo();
+  }, []);
 
   useEffect(() => {
-    if (isOpen && bill) {
+    if (isOpen && bill && logoBase64) {
       setLoading(true);
       setPdfUrl(null);
       
       // Generate PDF blob and create URL
       const generatePdf = async () => {
         try {
-          const blob = await pdf(<BillDocument bill={bill} />).toBlob();
+          const blob = await pdf(<BillDocument bill={bill} logoBase64={logoBase64} />).toBlob();
           const url = URL.createObjectURL(blob);
           setPdfUrl(url);
         } catch (error) {
@@ -552,12 +591,21 @@ const BillPDFModal = ({ bill, isOpen, onClose }) => {
         }
       };
     }
-  }, [isOpen, bill]);
+  }, [isOpen, bill, logoBase64]);
 
   if (!isOpen || !bill) return null;
 
   const handleDownload = async () => {
-    const blob = await pdf(<BillDocument bill={bill} />).toBlob();
+    // Wait for logo to be ready if not yet loaded
+    let logo = logoBase64;
+    if (!logo) {
+      if (LogoImage.startsWith('data:')) {
+        logo = LogoImage;
+      } else {
+        logo = await getBase64Logo(LogoImage);
+      }
+    }
+    const blob = await pdf(<BillDocument bill={bill} logoBase64={logo} />).toBlob();
     saveAs(blob, `Invoice-${bill.bill_number}.pdf`);
   };
 

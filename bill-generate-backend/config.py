@@ -1,6 +1,13 @@
 import os
+import sys
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+# Handle PyInstaller bundled executable
+if getattr(sys, 'frozen', False):
+    # Running as compiled executable
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    # Running as script
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     # Database filename set to 'abc bill db.db' as requested
