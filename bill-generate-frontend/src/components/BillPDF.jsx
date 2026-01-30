@@ -10,9 +10,13 @@ import {
 } from "@react-pdf/renderer";
 import { saveAs } from "file-saver";
 
-// Import logo from assets folder - Vite will handle this as base64 data URL
-// Using ?url to ensure it's processed as a URL/base64 by Vite
-import LogoImage from "../assets/LOGO.png";
+// Import logo from assets folder - Force inline as base64 for Electron compatibility
+// Note: Vite's assetsInlineLimit should handle this, but we need explicit base64 for @react-pdf
+import LogoImageUrl from "../assets/LOGO.png";
+
+// Embedded base64 logo as fallback for Electron/PDF generation where fetch might fail
+// This will be generated dynamically if the URL-based loading fails
+let cachedLogoBase64 = null;
 
 // PDF Styles
 const styles = StyleSheet.create({
@@ -23,12 +27,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     position: "relative", // Added for proper footer positioning
   },
-  
+
   // Main content container - with bottom margin for footer
   mainContent: {
     paddingBottom: 120, // Space for footer at the bottom
   },
-  
+
   // Top Grey Header with Logo - REMOVED WHITE BOX BEHIND LOGO
   headerContainer: {
     backgroundColor: "#374151", // Dark gray background
@@ -75,7 +79,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     marginRight: 8,
   },
-  
+
   // Invoice Header
   invoiceHeader: {
     alignItems: "flex-end",
@@ -104,7 +108,7 @@ const styles = StyleSheet.create({
     color: "#d1d5db", // Light gray text
     marginBottom: 2,
   },
-  
+
   // Two Column Layout - Only Customer Info
   twoColumn: {
     flexDirection: "row",
@@ -114,7 +118,7 @@ const styles = StyleSheet.create({
   column: {
     flex: 1,
   },
-  
+
   // Customer Info - Now taking full width
   customerCard: {
     backgroundColor: "#f1f5f9",
@@ -143,7 +147,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     textAlign: "left",
   },
-  
+
   // Paid Status Badge
   statusBadgeContainer: {
     alignItems: "flex-end",
@@ -165,7 +169,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fee2e2",
     color: "#991b1b",
   },
-  
+
   // Items Table
   itemsSection: {
     paddingHorizontal: 25,
@@ -215,7 +219,7 @@ const styles = StyleSheet.create({
   colQty: { width: "15%", textAlign: "center" },
   colPrice: { width: "20%", textAlign: "right" },
   colAmount: { width: "20%", textAlign: "right" },
-  
+
   // Totals - Simplified
   totalsSection: {
     paddingHorizontal: 25,
@@ -261,7 +265,7 @@ const styles = StyleSheet.create({
     color: "#ffffff", // White text
     fontWeight: "bold",
   },
-  
+
   // Payment Details
   paymentSection: {
     paddingHorizontal: 25,
@@ -303,7 +307,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: "#64748b",
   },
-  
+
   // Fixed Footer at the bottom
   footer: {
     position: "absolute",
@@ -348,18 +352,77 @@ const styles = StyleSheet.create({
 });
 
 // Helper function to convert image URL to base64 for PDF compatibility
+// Uses Image element + Canvas instead of fetch for Electron file:// compatibility
 const getBase64Logo = async (url) => {
+  // If already base64, return as-is
+  if (url && url.startsWith('data:')) {
+    cachedLogoBase64 = url;
+    return url;
+  }
+
+  // Return cached if available
+  if (cachedLogoBase64) {
+    return cachedLogoBase64;
+  }
+
+  try {
+    // Use Image + Canvas method which works with file:// protocol in Electron
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      
+      // Only set crossOrigin for http/https URLs, not for file:// or data: URLs
+      // Setting crossOrigin on file:// URLs can cause issues in Electron
+      if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+        img.crossOrigin = 'anonymous';
+      }
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const base64 = canvas.toDataURL('image/png');
+          cachedLogoBase64 = base64;
+          console.log("Logo successfully converted to base64");
+          resolve(base64);
+        } catch (canvasError) {
+          console.error("Canvas error:", canvasError);
+          reject(canvasError);
+        }
+      };
+      
+      img.onerror = (err) => {
+        console.error("Image load error for URL:", url, err);
+        // Fallback: try fetch method (works in dev server)
+        fetchBase64Logo(url).then(resolve).catch(reject);
+      };
+      
+      img.src = url;
+    });
+  } catch (error) {
+    console.error("Failed to convert logo to base64:", error);
+    return null;
+  }
+};
+
+// Fallback fetch-based method for development server
+const fetchBase64Logo = async (url) => {
   try {
     const response = await fetch(url);
     const blob = await response.blob();
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
+      reader.onloadend = () => {
+        cachedLogoBase64 = reader.result;
+        resolve(reader.result);
+      };
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error("Failed to convert logo to base64:", error);
+    console.error("Fetch fallback failed:", error);
     return null;
   }
 };
@@ -369,12 +432,12 @@ const BillDocument = ({ bill, logoBase64 }) => {
   const items = bill.items || [];
   const subtotal = items.reduce(
     (sum, item) => sum + Number(item.quantity) * Number(item.unit_price),
-    0
+    0,
   );
 
-  // Use base64 logo passed as prop, or fallback to imported logo
+  // Use base64 logo passed as prop, or fallback to imported logo URL
   // This ensures the logo works in both development and production (Electron)
-  const logoSrc = logoBase64 || LogoImage;
+  const logoSrc = logoBase64 || LogoImageUrl;
 
   return (
     <Document>
@@ -389,7 +452,9 @@ const BillDocument = ({ bill, logoBase64 }) => {
                 <Image src={logoSrc} style={styles.logoImage} />
                 <View style={styles.companyInfo}>
                   <Text style={styles.companyName}>ABC Graphics</Text>
-                  <Text style={styles.companyTagline}>Creativity Beyond Limits!</Text>
+                  <Text style={styles.companyTagline}>
+                    Creativity Beyond Limits!
+                  </Text>
                   <View style={styles.contactRow}>
                     <Text style={styles.contactItem}>Polonnaruwa</Text>
                     <Text style={styles.contactItem}>•</Text>
@@ -397,10 +462,12 @@ const BillDocument = ({ bill, logoBase64 }) => {
                     <Text style={styles.contactItem}>•</Text>
                     <Text style={styles.contactItem}>071 523 4993</Text>
                   </View>
-                  <Text style={styles.contactItem}>abceditinggraphic@gmail.com</Text>
+                  <Text style={styles.contactItem}>
+                    abceditinggraphic@gmail.com
+                  </Text>
                 </View>
               </View>
-              
+
               <View style={styles.invoiceHeader}>
                 <Text style={styles.invoiceTitle}>INVOICE</Text>
                 <Text style={styles.invoiceBadge}>#{bill.bill_number}</Text>
@@ -418,13 +485,22 @@ const BillDocument = ({ bill, logoBase64 }) => {
               <View style={styles.customerCard}>
                 <Text style={styles.customerName}>{bill.customer_name}</Text>
                 {bill.customer_email && (
-                  <Text style={styles.customerDetail}> {bill.customer_email}</Text>
+                  <Text style={styles.customerDetail}>
+                    {" "}
+                    {bill.customer_email}
+                  </Text>
                 )}
                 {bill.customer_phone && (
-                  <Text style={styles.customerDetail}> {bill.customer_phone}</Text>
+                  <Text style={styles.customerDetail}>
+                    {" "}
+                    {bill.customer_phone}
+                  </Text>
                 )}
                 {bill.customer_address && (
-                  <Text style={styles.customerDetail}> {bill.customer_address}</Text>
+                  <Text style={styles.customerDetail}>
+                    {" "}
+                    {bill.customer_address}
+                  </Text>
                 )}
               </View>
             </View>
@@ -444,10 +520,16 @@ const BillDocument = ({ bill, logoBase64 }) => {
             <Text style={styles.sectionTitle}>SERVICES / ITEMS</Text>
             <View style={styles.table}>
               <View style={styles.tableHeader}>
-                <Text style={[styles.tableHeaderText, styles.colService]}>Description</Text>
+                <Text style={[styles.tableHeaderText, styles.colService]}>
+                  Description
+                </Text>
                 <Text style={[styles.tableHeaderText, styles.colQty]}>Qty</Text>
-                <Text style={[styles.tableHeaderText, styles.colPrice]}>Unit Price</Text>
-                <Text style={[styles.tableHeaderText, styles.colAmount]}>Amount</Text>
+                <Text style={[styles.tableHeaderText, styles.colPrice]}>
+                  Unit Price
+                </Text>
+                <Text style={[styles.tableHeaderText, styles.colAmount]}>
+                  Amount
+                </Text>
               </View>
 
               {items.map((item, index) => (
@@ -457,9 +539,14 @@ const BillDocument = ({ bill, logoBase64 }) => {
                 >
                   <Text style={styles.colService}>{item.service_name}</Text>
                   <Text style={styles.colQty}>{item.quantity}</Text>
-                  <Text style={styles.colPrice}>Rs. {Number(item.unit_price).toFixed(2)}</Text>
+                  <Text style={styles.colPrice}>
+                    Rs. {Number(item.unit_price).toFixed(2)}
+                  </Text>
                   <Text style={styles.colAmount}>
-                    Rs. {(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}
+                    Rs.{" "}
+                    {(Number(item.quantity) * Number(item.unit_price)).toFixed(
+                      2,
+                    )}
                   </Text>
                 </View>
               ))}
@@ -475,7 +562,9 @@ const BillDocument = ({ bill, logoBase64 }) => {
               </View>
               <View style={styles.grandTotalRow}>
                 <Text style={styles.grandTotalLabel}>TOTAL AMOUNT</Text>
-                <Text style={styles.grandTotalValue}>Rs. {Number(bill.total).toFixed(2)}</Text>
+                <Text style={styles.grandTotalValue}>
+                  Rs. {Number(bill.total).toFixed(2)}
+                </Text>
               </View>
             </View>
           </View>
@@ -492,7 +581,7 @@ const BillDocument = ({ bill, logoBase64 }) => {
                   <Text style={styles.branch}>Kaduruwela Branch</Text>
                 </View>
               </View>
-              
+
               <View style={styles.paymentColumn}>
                 <View style={styles.paymentCard}>
                   <Text style={styles.bankName}>PEOPLES BANK</Text>
@@ -501,7 +590,7 @@ const BillDocument = ({ bill, logoBase64 }) => {
                   <Text style={styles.branch}>Polonnaruwa Branch</Text>
                 </View>
               </View>
-              
+
               <View style={styles.paymentColumn}>
                 <View style={styles.paymentCard}>
                   <Text style={styles.bankName}>NDB BANK</Text>
@@ -520,20 +609,25 @@ const BillDocument = ({ bill, logoBase64 }) => {
         {/* Fixed Footer at bottom of page */}
         <View style={styles.footer}>
           <View style={styles.thankYou}>
-            <Text style={styles.thankYouText}>Thank you for choosing ABC Graphics!</Text>
+            <Text style={styles.thankYouText}>
+              Thank you for choosing ABC Graphics!
+            </Text>
             <Text style={styles.thankYouSubtext}>
               We appreciate your business and look forward to serving you again
             </Text>
           </View>
-          
+
           <View style={styles.footerContact}>
             <Text style={styles.footerContactItem}> 075 971 5913 (Call)</Text>
             <Text style={styles.footerContactItem}>•</Text>
-            <Text style={styles.footerContactItem}> 071 523 4993 (WhatsApp)</Text>
+            <Text style={styles.footerContactItem}>
+              {" "}
+              071 523 4993 (WhatsApp)
+            </Text>
             <Text style={styles.footerContactItem}>•</Text>
             <Text style={styles.footerContactItem}> www.abcgraphics.lk</Text>
           </View>
-          
+
           <Text style={styles.footerCopyright}>
             © {new Date().getFullYear()} ABC Graphics. All rights reserved.
           </Text>
@@ -552,13 +646,13 @@ const BillPDFModal = ({ bill, isOpen, onClose }) => {
   // Convert logo to base64 on component mount for production compatibility
   useEffect(() => {
     const loadLogo = async () => {
-      // If LogoImage is already a data URL (base64), use it directly
-      if (LogoImage.startsWith('data:')) {
-        setLogoBase64(LogoImage);
+      // If LogoImageUrl is already a data URL (base64), use it directly
+      if (LogoImageUrl.startsWith("data:")) {
+        setLogoBase64(LogoImageUrl);
       } else {
         // Convert to base64 for production/Electron compatibility
-        const base64 = await getBase64Logo(LogoImage);
-        setLogoBase64(base64 || LogoImage);
+        const base64 = await getBase64Logo(LogoImageUrl);
+        setLogoBase64(base64 || LogoImageUrl);
       }
     };
     loadLogo();
@@ -568,11 +662,13 @@ const BillPDFModal = ({ bill, isOpen, onClose }) => {
     if (isOpen && bill && logoBase64) {
       setLoading(true);
       setPdfUrl(null);
-      
+
       // Generate PDF blob and create URL
       const generatePdf = async () => {
         try {
-          const blob = await pdf(<BillDocument bill={bill} logoBase64={logoBase64} />).toBlob();
+          const blob = await pdf(
+            <BillDocument bill={bill} logoBase64={logoBase64} />,
+          ).toBlob();
           const url = URL.createObjectURL(blob);
           setPdfUrl(url);
         } catch (error) {
@@ -581,9 +677,9 @@ const BillPDFModal = ({ bill, isOpen, onClose }) => {
           setLoading(false);
         }
       };
-      
+
       generatePdf();
-      
+
       // Cleanup URL on unmount
       return () => {
         if (pdfUrl) {
@@ -599,13 +695,15 @@ const BillPDFModal = ({ bill, isOpen, onClose }) => {
     // Wait for logo to be ready if not yet loaded
     let logo = logoBase64;
     if (!logo) {
-      if (LogoImage.startsWith('data:')) {
-        logo = LogoImage;
+      if (LogoImageUrl.startsWith("data:")) {
+        logo = LogoImageUrl;
       } else {
-        logo = await getBase64Logo(LogoImage);
+        logo = await getBase64Logo(LogoImageUrl);
       }
     }
-    const blob = await pdf(<BillDocument bill={bill} logoBase64={logo} />).toBlob();
+    const blob = await pdf(
+      <BillDocument bill={bill} logoBase64={logo} />,
+    ).toBlob();
     saveAs(blob, `Invoice-${bill.bill_number}.pdf`);
   };
 
@@ -615,7 +713,9 @@ const BillPDFModal = ({ bill, isOpen, onClose }) => {
         {/* Modal Header */}
         <div className="flex items-center justify-between bg-slate-900 px-6 py-4 text-white">
           <div>
-            <p className="text-sm uppercase tracking-wider text-slate-300">Invoice Preview</p>
+            <p className="text-sm uppercase tracking-wider text-slate-300">
+              Invoice Preview
+            </p>
             <h2 className="text-xl font-semibold">#{bill.bill_number}</h2>
           </div>
           <div className="flex items-center gap-3">
@@ -623,8 +723,17 @@ const BillPDFModal = ({ bill, isOpen, onClose }) => {
               onClick={handleDownload}
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 hover:-translate-y-0.5"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
               Download PDF
             </button>
@@ -654,7 +763,9 @@ const BillPDFModal = ({ bill, isOpen, onClose }) => {
           ) : (
             <div className="flex flex-col items-center gap-4 p-8">
               <div className="text-red-500 text-6xl">⚠️</div>
-              <p className="text-slate-600 font-medium">Failed to load PDF preview</p>
+              <p className="text-slate-600 font-medium">
+                Failed to load PDF preview
+              </p>
               <button
                 onClick={handleDownload}
                 className="mt-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all"
