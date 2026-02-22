@@ -3,6 +3,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
 const url = require('url');
+const http = require('http');
 
 let mainWindow;
 let backendProcess;
@@ -87,10 +88,28 @@ function startBackend() {
       console.log(`Backend process exited with code ${code}`);
     });
 
-    // Resolve after timeout if server doesn't explicitly signal ready
-    setTimeout(() => {
-      resolve();
-    }, 3000);
+    // Poll the backend until it responds (max ~15 seconds)
+    const maxAttempts = 30;
+    let attempts = 0;
+    const checkBackend = () => {
+      attempts++;
+      const req = http.get('http://localhost:5000/api/dashboard', (res) => {
+        console.log('Backend is ready (status ' + res.statusCode + ')');
+        resolve();
+      });
+      req.on('error', () => {
+        if (attempts < maxAttempts) {
+          setTimeout(checkBackend, 500);
+        } else {
+          console.warn('Backend did not respond in time, proceeding anyway');
+          resolve();
+        }
+      });
+      req.setTimeout(2000, () => { req.destroy(); });
+    };
+
+    // Give the process a moment to start before polling
+    setTimeout(checkBackend, 1000);
   });
 }
 

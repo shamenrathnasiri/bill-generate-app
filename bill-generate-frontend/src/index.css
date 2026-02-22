@@ -23,11 +23,35 @@
   }
 }
 
+@keyframes barRise {
+  from {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+  to {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 20px 4px rgba(245, 158, 11, 0.15); }
+}
+
 .animate-fade-in {
-  animation: fadeIn 0.6s ease-out forwards;
-  opacity: 0;
+  animation: fadeIn 0.6s ease-out both;
 }
 
 .animate-slide-down {
-  animation: slideDown 0.7s ease-out;
+  animation: slideDown 0.7s ease-out both;
+}
+
+.animate-bar-rise {
+  animation: barRise 0.8s ease-out both;
+  transform-origin: bottom;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
