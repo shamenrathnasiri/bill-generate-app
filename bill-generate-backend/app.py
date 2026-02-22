@@ -1,12 +1,19 @@
 from flask import Flask
 from flask_cors import CORS
-from config import Config
+from config import Config, DB_PATH, DB_DIR
 from models import db
 import sys
+import os
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    
+    # Log database location for debugging
+    print(f"[DB INFO] Database directory: {DB_DIR}")
+    print(f"[DB INFO] Database file path: {DB_PATH}")
+    print(f"[DB INFO] Database URI: {Config.SQLALCHEMY_DATABASE_URI}")
+    print(f"[DB INFO] APP_DB_DIR env: {os.environ.get('APP_DB_DIR', 'NOT SET')}")
     
     # Enable CORS for frontend
     CORS(app, resources={r"/api/*": {"origins": "*"}})

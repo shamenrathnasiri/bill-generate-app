@@ -3,17 +3,13 @@ import re
 import shutil
 from datetime import datetime
 
-from config import Config
+from config import Config, DB_PATH
 from app import create_app
 
 
 def get_db_path():
-    uri = Config.SQLALCHEMY_DATABASE_URI
-    match = re.match(r"sqlite:///(.*)", uri)
-    if match:
-        return match.group(1)
-    # fallback to default in same folder
-    return os.path.join(os.path.dirname(__file__), 'abc bill db.db')
+    # Use the DB_PATH directly from config
+    return DB_PATH
 
 
 def backup_and_remove(path: str):

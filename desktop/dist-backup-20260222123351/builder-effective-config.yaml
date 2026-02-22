@@ -1,0 +1,21 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.billgenerate.app
+productName: Bill Generate
+files:
+  - filter:
+      - main.js
+      - preload.js
+extraResources:
+  - from: ../bill-generate-backend/dist/app.exe
+    to: backend/app.exe
+  - from: ../bill-generate-frontend/dist
+    to: frontend
+win:
+  target: portable
+  signAndEditExecutable: false
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+electronVersion: 33.4.11

@@ -56,11 +56,22 @@ function startBackend() {
       fs.mkdirSync(dbDir, { recursive: true });
     }
     console.log('Database directory:', dbDir);
+    console.log('Database file will be at:', path.join(dbDir, 'abc bill db.db'));
+
+    // Create environment with database directory path
+    const backendEnv = { 
+      ...process.env, 
+      APP_DB_DIR: dbDir,
+      // Also set these for Windows compatibility
+      PYTHONIOENCODING: 'utf-8'
+    };
+    
+    console.log('Passing APP_DB_DIR env:', dbDir);
 
     backendProcess = spawn(backendPath, [], {
       cwd: backendDir,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, APP_DB_DIR: dbDir }
+      env: backendEnv
     });
 
     backendProcess.stdout.on('data', (data) => {

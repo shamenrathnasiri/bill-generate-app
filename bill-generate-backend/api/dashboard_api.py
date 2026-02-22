@@ -175,3 +175,23 @@ def get_dashboard_stats():
             'success': False,
             'message': str(e),
         }), 500
+
+
+@dashboard_bp.route('/debug', methods=['GET'])
+def get_debug_info():
+    """Return debug information about database location."""
+    import os
+    from config import Config, DB_DIR, DB_PATH
+    
+    db_exists = os.path.exists(DB_PATH)
+    
+    return jsonify({
+        'success': True,
+        'data': {
+            'db_dir': DB_DIR,
+            'db_path': DB_PATH,
+            'db_uri': Config.SQLALCHEMY_DATABASE_URI,
+            'db_exists': db_exists,
+            'app_db_dir_env': os.environ.get('APP_DB_DIR', 'NOT SET'),
+        }
+    }), 200
