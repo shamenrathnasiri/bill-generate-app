@@ -75,6 +75,10 @@
    'E:\\My '
    'project\\bill-generate-app\\bill-generate-backend\\api\\customer_api.py',
    'PYMODULE'),
+  ('api.dashboard_api',
+   'E:\\My '
+   'project\\bill-generate-app\\bill-generate-backend\\api\\dashboard_api.py',
+   'PYMODULE'),
   ('api.service_api',
    'E:\\My '
    'project\\bill-generate-app\\bill-generate-backend\\api\\service_api.py',
