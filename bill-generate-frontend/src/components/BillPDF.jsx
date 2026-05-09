@@ -463,7 +463,7 @@ const BillDocument = ({ bill, logoBase64 }) => {
                     <Text style={styles.contactItem}>071 523 4993</Text>
                   </View>
                   <Text style={styles.contactItem}>
-                    abceditinggraphic@gmail.com
+                    info.abcgraphics@gmail.com
                   </Text>
                 </View>
               </View>
