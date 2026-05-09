@@ -22,10 +22,20 @@ const Bills = () => {
   });
   const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
   const [selectedBillForPDF, setSelectedBillForPDF] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Reset to page 1 if current page exceeds total pages
+  useEffect(() => {
+    const totalPages = Math.ceil(bills.length / itemsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [bills.length, currentPage, itemsPerPage]);
 
   const fetchData = async () => {
     try {
@@ -201,6 +211,12 @@ const Bills = () => {
       </div>
     );
   }
+
+  // Pagination calculations
+  const totalPages = Math.ceil(bills.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedBills = bills.slice(startIndex, endIndex);
 
   return (
     <div>
@@ -423,7 +439,7 @@ const Bills = () => {
                 </td>
               </tr>
             ) : (
-              bills.map((bill) => (
+              paginatedBills.map((bill) => (
                 <tr key={bill.id} className="hover:bg-gray-50 transition-all duration-300 border-b border-gray-100">
                   <td className="px-5 py-4 border-b border-gray-100">
                     <span className="font-mono bg-gray-200 text-gray-900 px-2 py-1 rounded font-bold">
@@ -490,6 +506,48 @@ const Bills = () => {
           </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-5 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="text-sm text-gray-600">
+              Showing <span className="font-semibold">{startIndex + 1}</span> to <span className="font-semibold">{Math.min(endIndex, bills.length)}</span> of <span className="font-semibold">{bills.length}</span> invoices
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm font-semibold hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-300"
+              >
+                ← Previous
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                      currentPage === page
+                        ? 'bg-slate-900 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm font-semibold hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-300"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* PDF Preview Modal */}
