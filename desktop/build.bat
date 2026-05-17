@@ -20,8 +20,8 @@ echo.
 REM Step 2: Build the Python Backend
 echo [2/3] Building Python Backend...
 cd ..\bill-generate-backend
-pip install pyinstaller
-pyinstaller --onefile --noconsole app.py
+python -m pip install pyinstaller
+python -m PyInstaller --onefile --noconsole app.py
 if %ERRORLEVEL% NEQ 0 (
     echo ERROR: Backend build failed!
     pause

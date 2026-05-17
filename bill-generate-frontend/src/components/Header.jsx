@@ -13,18 +13,6 @@ const Header = ({ onMenuClick }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 mt-3 sm:mt-0">
-        <div className="relative group hidden sm:block">
-          <input
-            type="search"
-            placeholder="Search customers, services..."
-            className="pl-10 pr-4 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-300"
-          />
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-gray-600 transition-colors">🔍</span>
-        </div>
-
-        <div className="w-9 h-9 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer">A</div>
-      </div>
     </header>
   );
 };

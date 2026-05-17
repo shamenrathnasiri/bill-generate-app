@@ -32,6 +32,26 @@ function getFrontendPath() {
   }
 }
 
+function getPersistentDbDir() {
+  // Keep the database outside the packaged app so updates do not replace it.
+  return path.join(app.getPath('appData'), 'Bill Generate App', 'data');
+}
+
+function migrateExistingDatabase(targetDbDir) {
+  const targetDbPath = path.join(targetDbDir, 'abc bill db.db');
+  const legacyDbDir = path.join(app.getPath('userData'), 'data');
+  const legacyDbPath = path.join(legacyDbDir, 'abc bill db.db');
+
+  if (fs.existsSync(targetDbPath) || !fs.existsSync(legacyDbPath)) {
+    return;
+  }
+
+  fs.mkdirSync(targetDbDir, { recursive: true });
+  fs.copyFileSync(legacyDbPath, targetDbPath);
+  console.log('Migrated existing database from:', legacyDbPath);
+  console.log('Migrated database to:', targetDbPath);
+}
+
 // Start the Flask backend
 function startBackend() {
   return new Promise((resolve, reject) => {
@@ -49,12 +69,13 @@ function startBackend() {
     // Set working directory to backend location for database access
     const backendDir = path.dirname(backendPath);
     
-    // Use Electron's userData directory for persistent database storage
-    // This ensures the database survives app updates and restarts
-    const dbDir = path.join(app.getPath('userData'), 'data');
+    // Use a stable appData path for persistent database storage.
+    // This keeps the database separate from the packaged app so updates do not remove it.
+    const dbDir = getPersistentDbDir();
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });
     }
+    migrateExistingDatabase(dbDir);
     console.log('Database directory:', dbDir);
     console.log('Database file will be at:', path.join(dbDir, 'abc bill db.db'));
 

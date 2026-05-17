@@ -24,6 +24,7 @@ const Bills = () => {
   const [selectedBillForPDF, setSelectedBillForPDF] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchData();
@@ -212,11 +213,23 @@ const Bills = () => {
     );
   }
 
+  // Filter bills based on search query
+  const filteredBills = bills.filter((bill) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const matchesBillNumber = (bill.bill_number || "").toLowerCase().includes(q);
+    const matchesCustomer = (bill.customer_name || "").toLowerCase().includes(q);
+    const matchesItems = (bill.items || []).some((it) =>
+      (it.service_name || "").toLowerCase().includes(q)
+    );
+    return matchesBillNumber || matchesCustomer || matchesItems;
+  });
+
   // Pagination calculations
-  const totalPages = Math.ceil(bills.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredBills.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedBills = bills.slice(startIndex, endIndex);
+  const paginatedBills = filteredBills.slice(startIndex, endIndex);
 
   return (
     <div>
@@ -228,6 +241,37 @@ const Bills = () => {
         >
           + Create Invoice
         </button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-6 animate-fade-in">
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            placeholder="Search invoices by number, customer name or service..."
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+            className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all duration-300 text-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => { setSearchQuery(""); setCurrentPage(1); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <p className="text-xs text-gray-500 mt-2 ml-1">
+            Found <span className="font-semibold">{filteredBills.length}</span> result{filteredBills.length !== 1 ? "s" : ""}
+          </p>
+        )}
       </div>
 
       {isFormOpen && (
@@ -432,10 +476,10 @@ const Bills = () => {
             </tr>
           </thead>
           <tbody>
-            {bills.length === 0 ? (
+            {filteredBills.length === 0 ? (
               <tr>
                 <td colSpan="7" className="text-center text-gray-400 italic py-10">
-                  No invoices found. Create your first invoice!
+                  {searchQuery ? "No invoices match your search." : "No invoices found. Create your first invoice!"}
                 </td>
               </tr>
             ) : (
@@ -511,7 +555,7 @@ const Bills = () => {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-5 py-4 bg-gray-50 border-t border-gray-200">
             <div className="text-sm text-gray-600">
-              Showing <span className="font-semibold">{startIndex + 1}</span> to <span className="font-semibold">{Math.min(endIndex, bills.length)}</span> of <span className="font-semibold">{bills.length}</span> invoices
+              Showing <span className="font-semibold">{startIndex + 1}</span> to <span className="font-semibold">{Math.min(endIndex, filteredBills.length)}</span> of <span className="font-semibold">{filteredBills.length}</span> invoices
             </div>
             <div className="flex gap-2">
               <button

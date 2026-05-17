@@ -12,6 +12,9 @@ const Customers = () => {
   });
   const [editingId, setEditingId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Fetch customers on component mount
   useEffect(() => {
@@ -95,6 +98,18 @@ const Customers = () => {
     );
   }
 
+  // Filter customers based on search query
+  const filteredCustomers = customers.filter((customer) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (customer.name || "").toLowerCase().includes(q) ||
+      (customer.email || "").toLowerCase().includes(q) ||
+      (customer.phone || "").toLowerCase().includes(q) ||
+      (customer.address || "").toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 animate-slide-down">
@@ -105,6 +120,37 @@ const Customers = () => {
         >
           + Add Customer
         </button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-6 animate-fade-in">
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            placeholder="Search customers by name, email, phone or address..."
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+            className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all duration-300 text-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => { setSearchQuery(""); setCurrentPage(1); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <p className="text-xs text-gray-500 mt-2 ml-1">
+            Found <span className="font-semibold">{filteredCustomers.length}</span> result{filteredCustomers.length !== 1 ? "s" : ""}
+          </p>
+        )}
       </div>
 
       {isFormOpen && (
@@ -202,41 +248,94 @@ const Customers = () => {
               </tr>
             </thead>
             <tbody>
-              {customers.length === 0 ? (
+              {filteredCustomers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center text-gray-400 italic py-10">
-                    No customers found. Add your first customer!
+                    {searchQuery ? "No customers match your search." : "No customers found. Add your first customer!"}
                   </td>
                 </tr>
               ) : (
-                customers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-gray-50 transition-all duration-300 border-b border-gray-100">
-                    <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.name}</td>
-                    <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.email}</td>
-                    <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.phone}</td>
-                    <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.address}</td>
-                    <td className="px-5 py-4 border-b border-gray-100">
-                      <div className="flex flex-col md:flex-row gap-2">
-                        <button
-                          className="w-full md:w-auto px-4 py-2 bg-gray-700 text-white rounded-md text-sm hover:bg-green-900 hover:shadow-md transition-all duration-300"
-                          onClick={() => handleEdit(customer.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="w-full md:w-auto px-4 py-2 bg-red-700 text-white rounded-md text-sm hover:bg-red-800 hover:shadow-md transition-all duration-300"
-                          onClick={() => handleDelete(customer.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                (() => {
+                  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+                  const safePage = Math.min(currentPage, totalPages || 1);
+                  const startIndex = (safePage - 1) * itemsPerPage;
+                  const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
+                  return paginatedCustomers.map((customer) => (
+                    <tr key={customer.id} className="hover:bg-gray-50 transition-all duration-300 border-b border-gray-100">
+                      <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.name}</td>
+                      <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.email}</td>
+                      <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.phone}</td>
+                      <td className="px-5 py-4 border-b border-gray-100 text-gray-700">{customer.address}</td>
+                      <td className="px-5 py-4 border-b border-gray-100">
+                        <div className="flex flex-col md:flex-row gap-2">
+                          <button
+                            className="w-full md:w-auto px-4 py-2 bg-gray-700 text-white rounded-md text-sm hover:bg-green-900 hover:shadow-md transition-all duration-300"
+                            onClick={() => handleEdit(customer.id)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="w-full md:w-auto px-4 py-2 bg-red-700 text-white rounded-md text-sm hover:bg-red-800 hover:shadow-md transition-all duration-300"
+                            onClick={() => handleDelete(customer.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ));
+                })()
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {(() => {
+          const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+          const safePage = Math.min(currentPage, totalPages || 1);
+          const startIndex = (safePage - 1) * itemsPerPage;
+          const endIndex = Math.min(startIndex + itemsPerPage, filteredCustomers.length);
+          if (totalPages <= 1) return null;
+          return (
+            <div className="flex items-center justify-between px-5 py-4 bg-gray-50 border-t border-gray-200">
+              <div className="text-sm text-gray-600">
+                Showing <span className="font-semibold">{startIndex + 1}</span> to <span className="font-semibold">{endIndex}</span> of <span className="font-semibold">{filteredCustomers.length}</span> customers
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={safePage === 1}
+                  className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm font-semibold hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-300"
+                >
+                  ← Previous
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                        safePage === page
+                          ? 'bg-slate-900 text-white shadow-md'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={safePage === totalPages}
+                  className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm font-semibold hover:bg-slate-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-300"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
