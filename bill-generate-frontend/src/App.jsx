@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Customers from "./pages/Customers";
 import Services from "./pages/Services";
 import Bills from "./pages/Bills";
+import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <Route path="/customers" element={<Customers />} />
           <Route path="/services" element={<Services />} />
           <Route path="/bills" element={<Bills />} />
+          <Route path="/payments" element={<Payments />} />
           <Route path="/reports" element={<Reports />} />
         </Routes>
       </Layout>

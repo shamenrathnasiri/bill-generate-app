@@ -37,18 +37,66 @@ function getPersistentDbDir() {
   return path.join(app.getPath('appData'), 'Bill Generate App', 'data');
 }
 
-function migrateExistingDatabase(targetDbDir) {
+function migrateExistingDatabase(targetDbDir, backendDir) {
   const targetDbPath = path.join(targetDbDir, 'abc bill db.db');
-  const legacyDbDir = path.join(app.getPath('userData'), 'data');
-  const legacyDbPath = path.join(legacyDbDir, 'abc bill db.db');
 
-  if (fs.existsSync(targetDbPath) || !fs.existsSync(legacyDbPath)) {
+  // Candidate legacy locations to look for an existing DB
+  const candidates = [];
+
+  // Old userData location used by earlier app versions
+  const legacyDbDir = path.join(app.getPath('userData'), 'data');
+  candidates.push(path.join(legacyDbDir, 'abc bill db.db'));
+
+  // Repository copy (when running unpackaged from source)
+  candidates.push(path.join(__dirname, '..', 'bill-generate-backend', 'abc bill db.db'));
+
+  // Dist folder produced by PyInstaller
+  candidates.push(path.join(__dirname, '..', 'bill-generate-backend', 'dist', 'abc bill db.db'));
+
+  // Backend directory (runtime location next to exe)
+  if (backendDir) {
+    candidates.push(path.join(backendDir, 'abc bill db.db'));
+  }
+
+  // Filter only existing candidate files
+  const existing = candidates.filter((p) => fs.existsSync(p));
+  if (existing.length === 0) {
     return;
   }
 
+  // Choose the newest candidate by modification time
+  let newest = existing[0];
+  let newestMtime = fs.statSync(newest).mtimeMs;
+  for (let i = 1; i < existing.length; i++) {
+    try {
+      const s = fs.statSync(existing[i]).mtimeMs;
+      if (s > newestMtime) {
+        newest = existing[i];
+        newestMtime = s;
+      }
+    } catch (e) {
+      // ignore stat failures
+    }
+  }
+
+  // Ensure target dir exists
   fs.mkdirSync(targetDbDir, { recursive: true });
-  fs.copyFileSync(legacyDbPath, targetDbPath);
-  console.log('Migrated existing database from:', legacyDbPath);
+
+  // If target exists, only overwrite if candidate is newer
+  if (fs.existsSync(targetDbPath)) {
+    try {
+      const targetMtime = fs.statSync(targetDbPath).mtimeMs;
+      if (newestMtime <= targetMtime) {
+        console.log('Existing persistent DB is newer or equal; no migration needed');
+        return;
+      }
+    } catch (e) {
+      // continue to copy if stat fails
+    }
+  }
+
+  fs.copyFileSync(newest, targetDbPath);
+  console.log('Migrated database from:', newest);
   console.log('Migrated database to:', targetDbPath);
 }
 
@@ -75,7 +123,7 @@ function startBackend() {
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });
     }
-    migrateExistingDatabase(dbDir);
+    migrateExistingDatabase(dbDir, backendDir);
     console.log('Database directory:', dbDir);
     console.log('Database file will be at:', path.join(dbDir, 'abc bill db.db'));
 

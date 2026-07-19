@@ -13,6 +13,7 @@
   "build": {
     "appId": "com.billgenerate.app",
     "productName": "Bill Generate",
+    "icon": "icon.ico",
     "directories": {
       "output": "dist"
     },
@@ -32,6 +33,7 @@
     ],
     "win": {
       "target": "portable",
+      "icon": "icon.ico",
       "signAndEditExecutable": false
     },
     "nsis": {

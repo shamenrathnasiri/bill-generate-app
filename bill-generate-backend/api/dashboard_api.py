@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from models import db, Bill, Customer, Service
+from models import db, Bill, Customer, Service, Payment
 from sqlalchemy import func, extract
 from datetime import datetime, timedelta
 
@@ -149,6 +149,41 @@ def get_dashboard_stats():
             ).count()
         )
 
+        # --- Payment stats ---
+        total_payments = Payment.query.filter_by(is_deleted=False).count()
+
+        total_payment_amount = (
+            db.session.query(func.coalesce(func.sum(Payment.amount), 0))
+            .filter(Payment.is_deleted == False)
+            .scalar()
+        )
+
+        month_payments = (
+            Payment.query.filter(
+                Payment.is_deleted == False,
+                extract('month', Payment.date) == current_month,
+                extract('year', Payment.date) == current_year,
+            ).count()
+        )
+
+        month_payment_amount = (
+            db.session.query(func.coalesce(func.sum(Payment.amount), 0))
+            .filter(
+                Payment.is_deleted == False,
+                extract('month', Payment.date) == current_month,
+                extract('year', Payment.date) == current_year,
+            )
+            .scalar()
+        )
+
+        recent_payments = (
+            Payment.query
+            .filter_by(is_deleted=False)
+            .order_by(Payment.created_at.desc())
+            .limit(5)
+            .all()
+        )
+
         return jsonify({
             'success': True,
             'data': {
@@ -167,6 +202,11 @@ def get_dashboard_stats():
                 'recent_bills': [b.to_dict() for b in recent_bills],
                 'top_customers': top_customers,
                 'top_services': top_services,
+                'total_payments': total_payments,
+                'total_payment_amount': float(total_payment_amount),
+                'month_payments': month_payments,
+                'month_payment_amount': float(month_payment_amount),
+                'recent_payments': [p.to_dict() for p in recent_payments],
             },
         }), 200
 
